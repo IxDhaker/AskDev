@@ -63,13 +63,14 @@
                                             class="form-control border-start-0 ps-0 @error('password') is-invalid @enderror"
                                             name="password" required autocomplete="new-password" placeholder="••••••••">
                                     </div>
+                                    <div id="password-length-error" class="text-danger small mt-1" style="display: none;">
+                                        The password must contain at least 8 characters.                                    </div>
                                     @error('password')
                                         <span class="invalid-feedback d-block" role="alert">
                                             <strong>{{ $message }}</strong>
                                         </span>
                                     @enderror
                                 </div>
-
                                 <div class="col-md-6 mb-4">
                                     <label for="password-confirm"
                                         class="form-label text-muted small fw-bold text-uppercase">{{ __('Confirm Password') }}</label>
@@ -150,17 +151,18 @@
     </style>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const passwordInput = document.getElementById('password');
             const confirmInput = document.getElementById('password-confirm');
-            
+            const lengthError = document.getElementById('password-length-error');
+
             function validatePassword() {
                 if (confirmInput.value === '') {
                     confirmInput.classList.remove('is-invalid');
                     confirmInput.classList.remove('is-valid');
                     return;
                 }
-                
+
                 if (passwordInput.value !== confirmInput.value) {
                     confirmInput.classList.add('is-invalid');
                     confirmInput.classList.remove('is-valid');
@@ -171,9 +173,25 @@
             }
 
             confirmInput.addEventListener('input', validatePassword);
-            passwordInput.addEventListener('input', function() {
+            
+            passwordInput.addEventListener('input', function () {
+                // Validation de la correspondance
                 if (confirmInput.value !== '') {
                     validatePassword();
+                }
+
+                // Validation de la longueur (en temps réel)
+                if (this.value.length > 0 && this.value.length < 8) {
+                    this.classList.add('is-invalid');
+                    lengthError.style.display = 'block';
+                } else {
+                    // Si > 8 ou vide, on enlève l'erreur de longueur.
+                    // Note: on ne force pas le vert (is-valid) ici pour le mot de passe lui-même,
+                    // sauf si on veut valider la complexité. Pour l'instant on enlève juste le rouge/message.
+                    if (this.value.length >= 8 || this.value.length === 0) { 
+                         this.classList.remove('is-invalid');
+                         lengthError.style.display = 'none';
+                    }
                 }
             });
         });
