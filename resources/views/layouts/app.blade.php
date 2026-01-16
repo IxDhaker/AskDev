@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -37,13 +38,14 @@
             background-color: var(--light-bg);
             color: var(--text-light);
         }
+
         body.dark-mode {
             background-color: var(--dark-bg);
             color: var(--text-dark);
         }
 
-        body.dark-mode .card, 
-        body.dark-mode .navbar, 
+        body.dark-mode .card,
+        body.dark-mode .navbar,
         body.dark-mode .dropdown-menu {
             background-color: var(--dark-card) !important;
             color: var(--text-dark);
@@ -63,20 +65,20 @@
         .navbar {
             backdrop-filter: blur(10px);
             background-color: rgba(255, 255, 255, 0.8);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             transition: all 0.3s ease;
         }
 
         body.dark-mode .navbar {
             background-color: rgba(30, 41, 59, 0.8) !important;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .navbar-brand img {
             height: 40px;
             transition: transform 0.3s;
         }
-        
+
         .navbar-brand:hover img {
             transform: scale(1.05);
         }
@@ -127,6 +129,7 @@
         }
     </style>
 </head>
+
 <body class="light-mode">
     <div id="app">
         <nav class="navbar navbar-expand-md fixed-top">
@@ -134,7 +137,9 @@
                 <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url('/') }}">
                     <span class="d-none d-sm-block fw-bold text-primary">AskDev</span>
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -144,7 +149,8 @@
 
                     <ul class="navbar-nav ms-auto align-items-center">
                         <li class="nav-item me-3">
-                            <button id="themeToggle" class="btn btn-link nav-link p-0 theme-toggle" title="Toggle Theme">
+                            <button id="themeToggle" class="btn btn-link nav-link p-0 theme-toggle"
+                                title="Toggle Theme">
                                 <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
                             </button>
                         </li>
@@ -152,39 +158,44 @@
                         @guest
                             @if (Route::has('login'))
                                 <li class="nav-item">
-                                    <a class="nav-link px-3 py-2 ms-2 btn btn-primary text-black rounded-pill" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                    <a class="nav-link px-3 py-2 ms-2 btn btn-primary text-black rounded-pill"
+                                        href="{{ route('login') }}">{{ __('Login') }}</a>
                                 </li>
                             @endif
 
                             @if (Route::has('register'))
                                 <li class="nav-item">
-                                    <a class="nav-link px-3 py-2 ms-2 btn btn-primary text-black rounded-pill" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                    <a class="nav-link px-3 py-2 ms-2 btn btn-primary text-black rounded-pill"
+                                        href="{{ route('register') }}">{{ __('Register') }}</a>
                                 </li>
                             @endif
                         @else
                             <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center gap-2"
+                                    href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
+                                    aria-expanded="false" v-pre>
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                        style="width: 32px; height: 32px;">
                                         {{ substr(Auth::user()->name, 0, 1) }}
                                     </div>
                                     {{ Auth::user()->name }}
                                 </a>
 
-                                <div class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="navbarDropdown">
+                                <div class="dropdown-menu dropdown-menu-end shadow-lg border-0"
+                                    aria-labelledby="navbarDropdown">
                                     @if(Auth::user()->adminProfile)
                                         <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
                                             <i class="bi bi-speedometer2 me-2"></i> Admin Dashboard
                                         </a>
                                         <div class="dropdown-divider"></div>
                                     @endif
-                                    
+
                                     <a class="dropdown-item" href="{{ route('users.show', Auth::user()) }}">
                                         <i class="bi bi-person me-2"></i> {{ __('My Profile') }}
                                     </a>
-                                    
-                                    <a class="dropdown-item text-danger" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
+
+                                    <a class="dropdown-item text-danger" href="{{ route('logout') }}" onclick="event.preventDefault();
+                                                         document.getElementById('logout-form').submit();">
                                         <i class="bi bi-box-arrow-right me-2"></i> {{ __('Logout') }}
                                     </a>
 
@@ -207,14 +218,14 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
-                
+
                 @if(session('error'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <i class="bi bi-exclamation-triangle me-2"></i> {{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
-                
+
                 @yield('content')
             </div>
         </main>
@@ -224,7 +235,8 @@
                 <div class="row">
                     <div class="col-md-6 mb-3 mb-md-0">
                         <h5 class="fw-bold text-primary mb-2">AskDev</h5>
-                        <p class="text-muted small mb-0">The premier platform for developers to share knowledge and grow together.</p>
+                        <p class="text-muted small mb-0">The premier platform for developers to share knowledge and grow
+                            together.</p>
                     </div>
                     <div class="col-md-6 text-md-end">
                         <p class="text-muted small mb-0">&copy; {{ date('Y') }} AskDev. All rights reserved.</p>
@@ -243,11 +255,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const themeToggle = document.getElementById('themeToggle');
             const themeIcon = document.getElementById('themeIcon');
             const body = document.body;
-            
+
             // Check local storage
             const currentTheme = localStorage.getItem('theme');
             if (currentTheme === 'dark') {
@@ -257,7 +269,7 @@
                 themeIcon.classList.add('bi-sun-fill');
             }
 
-            themeToggle.addEventListener('click', function() {
+            themeToggle.addEventListener('click', function () {
                 if (body.classList.contains('light-mode')) {
                     body.classList.remove('light-mode');
                     body.classList.add('dark-mode');
@@ -275,4 +287,5 @@
         });
     </script>
 </body>
+
 </html>
