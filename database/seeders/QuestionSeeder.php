@@ -34,7 +34,7 @@ class QuestionSeeder extends Seeder
             Question::create([
                 'title' => $title,
                 'content' => "I am struggling with " . strtolower($title) . ". \n\nCan someone explain how this works and provide some code examples? \n\nThanks in advance!",
-                'status' => $index % 2 == 0 ? 'published' : 'pending',
+                'status' => $index % 2 == 0 ? 'open' : 'pending',
                 'user_id' => $users->random()->id,
                 'created_at' => now()->subDays(rand(1, 30)),
             ]);

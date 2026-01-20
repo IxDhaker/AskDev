@@ -19,9 +19,12 @@ class VoteController extends Controller
             'value' => 'required|in:up,down',
         ]);
 
-        $existingVote = Vote::where('user_id', Auth::id())
+        $user = Auth::user();
+        $existingVote = Vote::where('user_id', $user->id)
             ->where('question_id', $question->id)
             ->first();
+
+        $voteStatus = null;
 
         if ($existingVote) {
             if ($existingVote->value === $validated['value']) {
@@ -30,14 +33,30 @@ class VoteController extends Controller
             } else {
                 $existingVote->update(['value' => $validated['value']]);
                 $message = 'Vote updated successfully!';
+                $voteStatus = $validated['value'];
             }
         } else {
             Vote::create([
                 'value' => $validated['value'],
-                'user_id' => Auth::id(),
+                'user_id' => $user->id,
                 'question_id' => $question->id,
             ]);
             $message = 'Vote cast successfully!';
+            $voteStatus = $validated['value'];
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            // Calculate new score
+            $upVotes = $question->votes()->where('value', 'up')->count();
+            $downVotes = $question->votes()->where('value', 'down')->count();
+            $score = $upVotes - $downVotes;
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'score' => $score,
+                'user_vote' => $voteStatus
+            ]);
         }
 
         return redirect()->back()->with('success', $message);
@@ -54,5 +73,54 @@ class VoteController extends Controller
         }
 
         return redirect()->back()->with('error', 'No vote found to remove.');
+    }
+
+    public function voteReponse(Request $request, \App\Models\Reponse $reponse)
+    {
+        $validated = $request->validate([
+            'value' => 'required|in:up,down',
+        ]);
+
+        $user = Auth::user();
+        $existingVote = Vote::where('user_id', $user->id)
+            ->where('reponse_id', $reponse->id)
+            ->first();
+
+        $voteStatus = null;
+
+        if ($existingVote) {
+            if ($existingVote->value === $validated['value']) {
+                $existingVote->delete();
+                $message = 'Vote removed successfully!';
+            } else {
+                $existingVote->update(['value' => $validated['value']]);
+                $message = 'Vote updated successfully!';
+                $voteStatus = $validated['value'];
+            }
+        } else {
+            Vote::create([
+                'value' => $validated['value'],
+                'user_id' => $user->id,
+                'reponse_id' => $reponse->id,
+            ]);
+            $message = 'Vote cast successfully!';
+            $voteStatus = $validated['value'];
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            // Calculate new score
+            $upVotes = $reponse->votes()->where('value', 'up')->count();
+            $downVotes = $reponse->votes()->where('value', 'down')->count();
+            $score = $upVotes - $downVotes;
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'score' => $score,
+                'user_vote' => $voteStatus
+            ]);
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 }

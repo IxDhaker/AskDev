@@ -10,6 +10,7 @@ class Vote extends Model
         'value',
         'user_id',
         'question_id',
+        'reponse_id',
     ];
 
     // Relations
@@ -21,5 +22,10 @@ class Vote extends Model
     public function question()
     {
         return $this->belongsTo(Question::class);
+    }
+
+    public function reponse()
+    {
+        return $this->belongsTo(Reponse::class);
     }
 }

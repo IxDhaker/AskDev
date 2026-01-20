@@ -19,7 +19,28 @@ class LoginController extends Controller
     */
 
     use AuthenticatesUsers;
-    protected $redirectTo = '/questions';
+
+    /**
+     * Where to redirect users after login.
+     *
+     * @return string
+     */
+    public function redirectTo()
+    {
+        // Check if there's a redirect parameter in the request
+        if (request()->has('redirect')) {
+            return request()->get('redirect');
+        }
+
+        // Otherwise use the intended URL or default to home
+        return redirect()->intended('/')->getTargetUrl();
+    }
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->middleware('guest')->except('logout');

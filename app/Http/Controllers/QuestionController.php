@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Question;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class QuestionController extends Controller
 {
@@ -44,15 +45,23 @@ class QuestionController extends Controller
     }
     public function show(Question $question)
     {
-        $key = 'question_' . $question->id . '_viewed_by_' . (auth()->id() ?: request()->ip());
-        if (!\Illuminate\Support\Facades\Cache::has($key)) {
+        // Unique key based on User ID (if logged in) or IP (if guest)
+        $identifier = auth()->id() ?: request()->ip();
+        $viewKey = 'question_' . $question->id . '_viewed_' . $identifier;
+
+        // Check if the user has already viewed the question
+        if (!Cache::has($viewKey)) {
             $question->increment('views');
-            \Illuminate\Support\Facades\Cache::put($key, true, now()->addYear());
+            // Store in cache to prevent re-counting (valid for 1 year)
+            Cache::put($viewKey, true, now()->addYear());
         }
 
-        $question->load(['user', 'reponses.user', 'votes']);
-        $score = $question->votes()->sum('value') === 0 ? 0 :
-            $question->votes()->where('value', 'up')->count() - $question->votes()->where('value', 'down')->count();
+        $question->load(['user', 'reponses.user', 'votes', 'reponses.votes']);
+
+        // Calculate score
+        $upVotes = $question->votes()->where('value', 'up')->count();
+        $downVotes = $question->votes()->where('value', 'down')->count();
+        $score = $upVotes - $downVotes;
 
         return view('questions.show', compact('question', 'score'));
     }
@@ -89,7 +98,7 @@ class QuestionController extends Controller
 
         $question->delete();
 
-        return redirect()->route('questions.index')
+        return redirect()->route('home')
             ->with('success', 'Question deleted successfully!');
     }
 }

@@ -23,16 +23,20 @@ class RegisterController extends Controller
 
     use RegistersUsers;
 
-   
-    protected $redirectTo = '/home';
+    /**
+     * Where to redirect users after registration.
+     *
+     * @var string
+     */
+    protected $redirectTo = '/';
 
-   
+
     public function __construct()
     {
         $this->middleware('guest');
     }
 
-    
+
     protected function validator(array $data)
     {
         return Validator::make($data, [

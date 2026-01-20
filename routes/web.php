@@ -6,18 +6,22 @@ use App\Http\Controllers\ReponseController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VoteController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\HomeController;
 
 // Public routes
-Route::get('/', function () {
-    return redirect()->route('login');
-});
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Auth::routes();
 
 
 
 // Question routes
-Route::resource('questions', QuestionController::class);
+// Explicitly redirect the index route to home
+Route::get('/questions', function () {
+    return redirect()->route('home');
+})->name('questions.index');
+
+Route::resource('questions', QuestionController::class)->except(['index']);
 
 // Response routes
 Route::post('/questions/{question}/reponses', [ReponseController::class, 'store'])->name('reponses.store');
@@ -31,10 +35,13 @@ Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show')
 Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
 Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
 Route::get('/users/{user}/activity', [UserController::class, 'activity'])->name('users.activity');
+Route::get('/users/{user}/archive/questions', [UserController::class, 'archiveQuestions'])->name('users.archive.questions');
+Route::get('/users/{user}/archive/reponses', [UserController::class, 'archiveReponses'])->name('users.archive.reponses');
 
 // Vote routes
 Route::post('/questions/{question}/vote', [VoteController::class, 'vote'])->name('votes.vote');
 Route::delete('/questions/{question}/vote', [VoteController::class, 'removeVote'])->name('votes.remove');
+Route::post('/reponses/{reponse}/vote', [VoteController::class, 'voteReponse'])->name('reponses.vote');
 
 // Admin routes
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -50,4 +57,3 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/questions', [AdminController::class, 'questions'])->name('questions');
     Route::put('/questions/{question}/status', [AdminController::class, 'updateQuestionStatus'])->name('questions.status');
 });
-

@@ -102,4 +102,15 @@ class UserController extends Controller
 
         return view('users.activity', compact('user', 'questions', 'reponses'));
     }
+    public function archiveQuestions(User $user)
+    {
+        $questions = $user->questions()->latest()->paginate(15);
+        return view('users.archive.questions', compact('user', 'questions'));
+    }
+
+    public function archiveReponses(User $user)
+    {
+        $reponses = $user->reponses()->with('question')->latest()->paginate(15);
+        return view('users.archive.reponses', compact('user', 'reponses'));
+    }
 }

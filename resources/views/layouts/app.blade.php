@@ -296,15 +296,17 @@
                         @guest
                             @if (Route::has('login'))
                                 <li class="nav-item">
-                                    <a class="nav-link px-3 py-2 ms-2 btn btn-primary text-black rounded-pill"
-                                        href="{{ route('login') }}">{{ __('Login') }}</a>
+                                    <button class="nav-link px-3 py-2 ms-2 btn btn-primary text-black rounded-pill border-0"
+                                        data-bs-toggle="modal" data-bs-target="#loginModal">
+                                        {{ __('Login') }}
+                                    </button>
                                 </li>
                             @endif
 
                             @if (Route::has('register'))
                                 <li class="nav-item">
                                     <a class="nav-link px-3 py-2 ms-2 btn btn-primary text-black rounded-pill"
-                                        href="{{ route('register') }}">{{ __('Register') }}</a>
+                                        href="{{ route('register') }}?redirect={{ urlencode(url()->current()) }}">{{ __('Register') }}</a>
                                 </li>
                             @endif
                         @else
@@ -332,8 +334,12 @@
                                         <i class="bi bi-person me-2"></i> {{ __('My Profile') }}
                                     </a>
 
+                                    <a class="dropdown-item" href="{{ route('users.archive.questions', Auth::user()) }}">
+                                        <i class="bi bi-archive me-2"></i> Archive
+                                    </a>
+
                                     <a class="dropdown-item text-danger" href="{{ route('logout') }}" onclick="event.preventDefault();
-                                                                 document.getElementById('logout-form').submit();">
+                                                                         document.getElementById('logout-form').submit();">
                                         <i class="bi bi-box-arrow-right me-2"></i> {{ __('Logout') }}
                                     </a>
 
@@ -389,6 +395,87 @@
         </footer>
     </div>
 
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-primary text-white border-0 py-3 position-relative">
+                    <h5 class="modal-title fw-bold" id="loginModalLabel">Welcome Back!</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 p-md-5 bg-surface">
+                    <form method="POST" action="{{ route('login') }}">
+                        @csrf
+                        <div class="mb-4">
+                            <label for="modal-email"
+                                class="form-label text-muted small fw-bold text-uppercase">{{ __('Email Address') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i
+                                        class="bi bi-envelope text-muted"></i></span>
+                                <input id="modal-email" type="email"
+                                    class="form-control border-start-0 ps-0 @error('email') is-invalid @enderror"
+                                    name="email" value="{{ old('email') }}" required autocomplete="email" autofocus
+                                    placeholder="name@example.com">
+                            </div>
+                            @error('email')
+                                <span class="invalid-feedback d-block" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="modal-password"
+                                    class="form-label text-muted small fw-bold text-uppercase">{{ __('Password') }}</label>
+                                @if (Route::has('password.request'))
+                                    <a class="btn btn-link p-0 small text-decoration-none"
+                                        href="{{ route('password.request') }}">
+                                        {{ __('Forgot Password?') }}
+                                    </a>
+                                @endif
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i
+                                        class="bi bi-lock text-muted"></i></span>
+                                <input id="modal-password" type="password"
+                                    class="form-control border-start-0 ps-0 @error('password') is-invalid @enderror"
+                                    name="password" required autocomplete="current-password" placeholder="••••••••">
+                            </div>
+                            @error('password')
+                                <span class="invalid-feedback d-block" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="remember" id="modal-remember"
+                                    {{ old('remember') ? 'checked' : '' }}>
+                                <label class="form-check-label small" for="modal-remember">
+                                    {{ __('Remember Me') }}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary py-2 fw-bold rounded-pill shadow-sm">
+                                {{ __('Login') }}
+                            </button>
+                        </div>
+
+                        <div class="text-center small text-muted">
+                            Don't have an account? <a href="{{ route('register') }}"
+                                class="fw-bold text-primary text-decoration-none">Create Account</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -424,6 +511,7 @@
             });
         });
     </script>
+    @stack('scripts')
 </body>
 
 </html>
