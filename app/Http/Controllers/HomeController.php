@@ -11,6 +11,7 @@ class HomeController extends Controller
     public function index()
     {
         $questions = Question::with(['user', 'reponses'])
+            ->where('status', 'open')
             ->latest()
             ->paginate(15);
 

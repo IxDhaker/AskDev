@@ -295,13 +295,20 @@
 
                         @guest
                             @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <button class="nav-link px-3 py-2 ms-2 btn btn-primary text-black rounded-pill border-0"
-                                        data-bs-toggle="modal" data-bs-target="#loginModal">
-                                        {{ __('Login') }}
-                                    </button>
-                                </li>
-                            @endif
+    <li class="nav-item">
+        @if(!request()->routeIs('login'))
+            <button class="nav-link px-3 py-2 ms-2 btn btn-primary text-black rounded-pill border-0"
+                data-bs-toggle="modal" data-bs-target="#loginModal">
+                {{ __('Login') }}
+            </button>
+        @else
+            <a class="nav-link px-3 py-2 ms-2 btn btn-primary text-black rounded-pill border-0"
+                href="{{ route('login') }}">
+                {{ __('Login') }}
+            </a>
+        @endif
+    </li>
+@endif
 
                             @if (Route::has('register'))
                                 <li class="nav-item">
@@ -323,9 +330,9 @@
 
                                 <div class="dropdown-menu dropdown-menu-end shadow-lg border-0"
                                     aria-labelledby="navbarDropdown">
-                                    @if(Auth::user()->adminProfile)
+                                    @if(Auth::user()->role === 'admin')
                                         <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
-                                            <i class="bi bi-speedometer2 me-2"></i> Admin Dashboard
+                                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
                                         </a>
                                         <div class="dropdown-divider"></div>
                                     @endif

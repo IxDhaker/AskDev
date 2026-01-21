@@ -104,7 +104,10 @@ class UserController extends Controller
     }
     public function archiveQuestions(User $user)
     {
-        $questions = $user->questions()->latest()->paginate(15);
+        $questions = $user->questions()
+            ->where('status', '!=', 'closed')
+            ->latest()
+            ->paginate(15);
         return view('users.archive.questions', compact('user', 'questions'));
     }
 
@@ -112,5 +115,40 @@ class UserController extends Controller
     {
         $reponses = $user->reponses()->with('question')->latest()->paginate(15);
         return view('users.archive.reponses', compact('user', 'reponses'));
+    }
+
+    public function destroy(Request $request, User $user)
+    {
+        if ($user->id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'password' => 'required',
+        ]);
+
+        if (!Hash::check($request->password, $user->password)) {
+            return back()->withErrors(['password' => 'Incorrect password provided.']);
+        }
+
+        Auth::logout();
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('home')->with('success', 'Your account has been deleted successfully.');
+    }
+
+    public function checkPassword(Request $request)
+    {
+        $request->validate(['password' => 'required']);
+        $user = Auth::user();
+
+        if (Hash::check($request->password, $user->password)) {
+            return response()->json(['valid' => true]);
+        }
+
+        return response()->json(['valid' => false]);
     }
 }

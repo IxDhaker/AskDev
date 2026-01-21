@@ -37,6 +37,8 @@ Route::put('/users/{user}', [UserController::class, 'update'])->name('users.upda
 Route::get('/users/{user}/activity', [UserController::class, 'activity'])->name('users.activity');
 Route::get('/users/{user}/archive/questions', [UserController::class, 'archiveQuestions'])->name('users.archive.questions');
 Route::get('/users/{user}/archive/reponses', [UserController::class, 'archiveReponses'])->name('users.archive.reponses');
+Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.delete');
+Route::post('/users/check-password', [UserController::class, 'checkPassword'])->name('users.check-password');
 
 // Vote routes
 Route::post('/questions/{question}/vote', [VoteController::class, 'vote'])->name('votes.vote');

@@ -1,17 +1,21 @@
 <div class="answer-card position-relative" id="reponse-{{ $reponse->id }}">
     @auth
-        @if($reponse->user_id === auth()->id())
+        @if($reponse->user_id === auth()->id() || auth()->user()->role === 'admin')
             <div class="position-absolute top-0 end-0 m-3 d-flex gap-2">
-                <a href="{{ route('reponses.edit', $reponse) }}"
-                    class="btn btn-sm btn-outline-primary rounded-circle p-2 d-flex align-items-center justify-content-center"
-                    style="width: 32px; height: 32px;" title="Edit">
-                    <i class="bi bi-pencil" style="font-size: 0.8rem;"></i>
-                </a>
+                @if($reponse->user_id === auth()->id())
+                    <a href="{{ route('reponses.edit', $reponse) }}"
+                        class="btn btn-sm btn-outline-primary rounded-circle p-2 d-flex align-items-center justify-content-center"
+                        style="width: 32px; height: 32px;" title="Edit">
+                        <i class="bi bi-pencil" style="font-size: 0.8rem;"></i>
+                    </a>
+                @endif
                 <button type="button"
                     class="btn btn-sm btn-outline-danger rounded-circle p-2 d-flex align-items-center justify-content-center"
                     style="width: 32px; height: 32px;" data-bs-toggle="modal" data-bs-target="#deleteResponseModal"
-                    onclick="setDeleteResponseAction('{{ route('reponses.destroy', $reponse) }}')" title="Delete">
-                    <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
+                    onclick="setDeleteResponseAction('{{ route('reponses.destroy', $reponse) }}')"
+                    title="{{ auth()->user()->role === 'admin' ? 'Hide/Delete Answer' : 'Delete' }}">
+                    <i class="bi {{ auth()->user()->role === 'admin' ? 'bi-eye-slash' : 'bi-trash' }}"
+                        style="font-size: 0.8rem;"></i>
                 </button>
             </div>
         @endif

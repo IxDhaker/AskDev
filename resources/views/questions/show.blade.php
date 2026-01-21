@@ -332,11 +332,13 @@
             </div>
 
             @auth
-                @if($question->user_id === auth()->id())
+                @if($question->user_id === auth()->id() || auth()->user()->role === 'admin')
                     <div class="action-buttons">
-                        <a href="{{ route('questions.edit', $question) }}" class="btn btn-outline-primary">
-                            <i class="bi bi-pencil me-2"></i>Edit
-                        </a>
+                        @if($question->user_id === auth()->id())
+                            <a href="{{ route('questions.edit', $question) }}" class="btn btn-outline-primary">
+                                <i class="bi bi-pencil me-2"></i>Edit
+                            </a>
+                        @endif
                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
                             data-bs-target="#deleteQuestionModal">
                             <i class="bi bi-trash me-2"></i>Delete
@@ -552,6 +554,12 @@
                             }
                         })
                             .then(response => {
+                                // If validation fails, Laravel returns 422
+                                if (response.status === 422) {
+                                    return response.json().then(data => {
+                                        throw { status: 422, errors: data.errors };
+                                    });
+                                }
                                 if (!response.ok) throw new Error('Network response was not ok');
                                 return response.json();
                             })
@@ -576,8 +584,14 @@
                                     const section = document.querySelector('.answers-section');
                                     section.insertBefore(newAnswer, formContainer);
 
-                                    // 4. Clear form
+                                    // 4. Clear form and errors
                                     form.reset();
+                                    const textarea = form.querySelector('textarea[name="content"]');
+                                    if (textarea) {
+                                        textarea.classList.remove('is-invalid');
+                                        textarea.classList.add('is-valid');
+                                        setTimeout(() => textarea.classList.remove('is-valid'), 3000); // Remove success state after 3s
+                                    }
 
                                     // 5. Scroll to new answer
                                     newAnswer.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -588,15 +602,51 @@
                             })
                             .catch(error => {
                                 console.error('Error:', error);
-                                alert('Something went wrong. Please try again.');
+                                if (error.status === 422 && error.errors && error.errors.content) {
+                                    const textarea = form.querySelector('textarea[name="content"]');
+                                    if (textarea) {
+                                        textarea.classList.add('is-invalid');
+
+                                        // Optional: Add a shake animation to draw attention
+                                        textarea.style.animation = 'shake 0.5s';
+                                        setTimeout(() => textarea.style.animation = '', 500);
+
+                                        // Focus the textarea
+                                        textarea.focus();
+                                    }
+                                } else {
+                                    // Only alert for other types of errors (not validation)
+                                    alert('Something went wrong. Please try again.');
+                                }
                             })
                             .finally(() => {
                                 submitBtn.disabled = false;
                                 submitBtn.innerHTML = originalBtnText;
                             });
                     });
+
+                    // Add input listener to remove is-invalid class when user types
+                    const textarea = reponseForm.querySelector('textarea[name="content"]');
+                    if (textarea) {
+                        textarea.addEventListener('input', function () {
+                            this.classList.remove('is-invalid');
+                        });
+                    }
                 }
             });
+
+            // Add shake keyframes to existing style
+            const styleSheet = document.createElement("style");
+            styleSheet.innerText = `
+                    @keyframes shake {
+                        0% { transform: translateX(0); }
+                        25% { transform: translateX(-5px); }
+                        50% { transform: translateX(5px); }
+                        75% { transform: translateX(-5px); }
+                        100% { transform: translateX(0); }
+                    }
+                `;
+            document.head.appendChild(styleSheet);
         </script>
     @endpush
 @endsection

@@ -13,22 +13,29 @@
                         <div class="list-group-item px-0 py-3 border-bottom-0 border-top">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div class="flex-grow-1 pe-3">
-                                    <a href="{{ route('questions.show', $question) }}"
-                                        class="text-decoration-none fw-bold h6 text-dark mb-1 d-block">
-                                         {{ $question->title }}
-                                    </a>
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span
+                                            class="badge {{ $question->status === 'open' ? 'bg-success-subtle text-success' : ($question->status === 'closed' ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning') }} rounded-pill small me-2"
+                                            style="font-size: 0.7rem;">
+                                            {{ ucfirst($question->status) }}
+                                        </span>
+                                        <a href="{{ route('questions.show', $question) }}"
+                                            class="text-decoration-none fw-bold h6 text-dark mb-0 d-block">
+                                            {{ $question->title }}
+                                        </a>
+                                    </div>
 
                                 </div>
                                 <div class="d-flex gap-2">
-                                    <a href="{{ route('questions.edit', $question) }}" class="btn btn-sm btn-outline-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Edit">
+                                    <a href="{{ route('questions.edit', $question) }}"
+                                        class="btn btn-sm btn-outline-primary rounded-circle p-2 d-flex align-items-center justify-content-center"
+                                        style="width: 32px; height: 32px;" title="Edit">
                                         <i class="bi bi-pencil" style="font-size: 0.8rem;"></i>
                                     </a>
-                                    <button type="button" 
-                                        class="btn btn-sm btn-outline-danger rounded-circle p-2 d-flex align-items-center justify-content-center" 
-                                        style="width: 32px; height: 32px;" 
-                                        title="Delete"
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#deleteArchiveModal" 
+                                    <button type="button"
+                                        class="btn btn-sm btn-outline-danger rounded-circle p-2 d-flex align-items-center justify-content-center"
+                                        style="width: 32px; height: 32px;" title="Delete" data-bs-toggle="modal"
+                                        data-bs-target="#deleteArchiveModal"
                                         data-action="{{ route('questions.destroy', $question) }}">
                                         <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
                                     </button>

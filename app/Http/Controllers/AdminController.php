@@ -15,7 +15,7 @@ class AdminController extends Controller
     {
         $this->middleware('auth');
         $this->middleware(function ($request, $next) {
-            if (!Auth::user()->adminProfile) {
+            if (Auth::user()->role !== 'admin') {
                 abort(403, 'Unauthorized. Admin access required.');
             }
             return $next($request);
@@ -26,10 +26,10 @@ class AdminController extends Controller
     {
         $stats = [
             'total_users' => User::count(),
-            'total_questions' => Question::count(),
+            'total_questions' => Question::where('status', '!=', 'closed')->count(),
             'pending_questions' => Question::where('status', 'pending')->count(),
             'recent_users' => User::latest()->take(5)->get(),
-            'recent_questions' => Question::with('user')->latest()->take(10)->get(),
+            'recent_questions' => Question::with('user')->where('status', '!=', 'closed')->latest()->take(10)->get(),
         ];
 
         return view('admin.dashboard', compact('stats'));
@@ -37,6 +37,7 @@ class AdminController extends Controller
     public function users()
     {
         $users = User::with('adminProfile')
+            ->where('id', '!=', Auth::id())
             ->withCount(['questions', 'reponses', 'votes'])
             ->latest()
             ->paginate(20);
@@ -88,7 +89,7 @@ class AdminController extends Controller
 
     public function deleteUser(User $user)
     {
-       if ($user->id === Auth::id()) {
+        if ($user->id === Auth::id()) {
             return redirect()->route('admin.users')
                 ->with('error', 'You cannot delete your own account!');
         }
@@ -101,11 +102,22 @@ class AdminController extends Controller
 
     public function questions()
     {
-        $questions = Question::with(['user', 'reponses'])
+        $pendingQuestions = Question::with(['user', 'reponses'])
+            ->where('status', 'pending')
             ->latest()
-            ->paginate(20);
+            ->get();
 
-        return view('admin.questions.index', compact('questions'));
+        $publishedQuestions = Question::with(['user', 'reponses'])
+            ->where('status', 'open')
+            ->latest()
+            ->paginate(15, ['*'], 'published_page');
+
+        $closedQuestions = Question::with(['user', 'reponses'])
+            ->where('status', 'closed')
+            ->latest()
+            ->paginate(15, ['*'], 'closed_page');
+
+        return view('admin.questions.index', compact('pendingQuestions', 'publishedQuestions', 'closedQuestions'));
     }
 
     public function updateQuestionStatus(Request $request, Question $question)

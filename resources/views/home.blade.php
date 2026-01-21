@@ -336,9 +336,21 @@
 
         @if($questions->count() > 0)
             @foreach($questions as $question)
-                <a href="{{ route('questions.show', $question) }}" class="question-card">
+                <div class="question-card position-relative">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h3 class="question-title mb-0">{{ $question->title }}</h3>
+                        <a href="{{ route('questions.show', $question) }}" class="text-decoration-none text-reset flex-grow-1">
+                            <h3 class="question-title mb-0">{{ $question->title }}</h3>
+                        </a>
+                        @if(Auth::check() && Auth::user()->role === 'admin')
+                            <form action="{{ route('questions.destroy', $question) }}" method="POST" class="d-inline z-2"
+                                onsubmit="return confirm('Delete this question permanently?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger border-0 p-1" title="Delete Question">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        @endif
                     </div>
 
                     <p class="question-content">{{ Str::limit($question->content, 150) }}</p>
@@ -346,7 +358,7 @@
                     <div class="question-meta">
                         <div class="meta-item">
                             <i class="bi bi-person-circle"></i>
-                            <span>{{ $question->user->name }}</span>
+                            <span>{{ $question->user ? $question->user->name : 'Deleted User' }}</span>
                         </div>
                         <div class="meta-item">
                             <i class="bi bi-chat-dots"></i>
@@ -361,7 +373,7 @@
                             <span>{{ $question->created_at->diffForHumans() }}</span>
                         </div>
                     </div>
-                </a>
+                </div>
             @endforeach
 
             <!-- Pagination -->

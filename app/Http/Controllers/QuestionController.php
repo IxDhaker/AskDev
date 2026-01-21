@@ -36,15 +36,23 @@ class QuestionController extends Controller
         $question = Question::create([
             'title' => $validated['title'],
             'content' => $validated['content'],
-            'status' => $validated['status'] ?? 'open',
+            'status' => $validated['status'] ?? 'pending',
             'user_id' => Auth::id(),
         ]);
 
         return redirect()->route('questions.show', $question)
-            ->with('success', 'Question created successfully!');
+            ->with('success', 'Question created successfully! It is pending approval.');
     }
     public function show(Question $question)
     {
+        // Check visibility
+        if ($question->status !== 'open') {
+            $user = Auth::user();
+            if (!$user || ($user->id !== $question->user_id && $user->role !== 'admin')) {
+                abort(404);
+            }
+        }
+
         // Unique key based on User ID (if logged in) or IP (if guest)
         $identifier = auth()->id() ?: request()->ip();
         $viewKey = 'question_' . $question->id . '_viewed_' . $identifier;

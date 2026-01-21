@@ -27,6 +27,11 @@ class LoginController extends Controller
      */
     public function redirectTo()
     {
+        // Check if user is admin
+        if (auth()->user()->role === 'admin') {
+            return route('admin.dashboard');
+        }
+
         // Check if there's a redirect parameter in the request
         if (request()->has('redirect')) {
             return request()->get('redirect');
