@@ -68,16 +68,11 @@
                                                     <i class="bi bi-check-lg me-1"></i> Approve
                                                 </button>
                                             </form>
-                                            <form action="{{ route('questions.destroy', $question) }}" method="POST"
-                                                class="d-inline mt-1"
-                                                onsubmit="return confirm('Are you sure you want to permanently reject and delete this question?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="btn btn-outline-danger btn-sm rounded-pill px-3 w-100 mt-2">
-                                                    <i class="bi bi-x-lg me-1"></i> Reject
-                                                </button>
-                                            </form>
+                                            <button type="button"
+                                                class="btn btn-outline-danger btn-sm rounded-pill px-3 w-100 mt-2"
+                                                onclick="window.confirmDeleteQuestion('{{ route('questions.destroy', $question) }}', 'Are you sure you want to permanently reject and delete this question?')">
+                                                <i class="bi bi-x-lg me-1"></i> Reject
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -130,15 +125,11 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm p-2">
                                                 <li>
-                                                    <form action="{{ route('questions.destroy', $question) }}" method="POST"
-                                                        onsubmit="return confirm('Are you sure you want to permanently delete this question?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="dropdown-item rounded-2 text-danger">
-                                                            <i class="bi bi-trash-fill me-2"></i>
-                                                            Delete Question
-                                                        </button>
-                                                    </form>
+                                                    <button type="button" class="dropdown-item rounded-2 text-danger"
+                                                        onclick="window.confirmDeleteQuestion('{{ route('questions.destroy', $question) }}', 'Are you sure you want to permanently delete this question?')">
+                                                        <i class="bi bi-trash-fill me-2"></i>
+                                                        Delete Question
+                                                    </button>
                                                 </li>
                                             </ul>
                                         </div>
@@ -161,7 +152,48 @@
 
         </div>
 
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteQuestionModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                    <div class="modal-body p-4 text-center">
+                        <div class="mb-3 text-danger">
+                            <i class="bi bi-exclamation-circle" style="font-size: 3rem;"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Delete this Question?</h4>
+                        <p class="text-muted mb-4" id="deleteModalMessage">Are you sure you want to delete this question?
+                            This action cannot be undone.</p>
+
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-light rounded-pill px-4"
+                                data-bs-dismiss="modal">Cancel</button>
+                            <form id="deleteQuestionForm" action="" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger rounded-pill px-4">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script>
+            // Global function for delete confirmation
+            window.confirmDeleteQuestion = function (url, message) {
+                const form = document.getElementById('deleteQuestionForm');
+                const messageElement = document.getElementById('deleteModalMessage');
+
+                if (form) {
+                    form.action = url;
+                    if (message && messageElement) {
+                        messageElement.textContent = message;
+                    }
+                    const modal = new bootstrap.Modal(document.getElementById('deleteQuestionModal'));
+                    modal.show();
+                }
+            };
+
             // Keep tab active on page reload (useful for pagination)
             document.addEventListener('DOMContentLoaded', function () {
                 var triggerTabList = [].slice.call(document.querySelectorAll('#questionsTab button'))
@@ -180,8 +212,11 @@
                 if (activeTabId) {
                     var activeTab = document.getElementById(activeTabId);
                     if (activeTab) {
-                        var tab = new bootstrap.Tab(activeTab);
-                        tab.show();
+                        var activeTabBtn = document.querySelector('#' + activeTabId);
+                        if (activeTabBtn) {
+                            var tab = new bootstrap.Tab(activeTabBtn);
+                            tab.show();
+                        }
                     }
                 }
             });

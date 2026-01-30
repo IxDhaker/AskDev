@@ -13,6 +13,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
 
     <style>
         :root {
@@ -265,6 +266,15 @@
         body.dark-mode .navbar-toggler-icon {
             filter: invert(1);
         }
+
+        /* Password Toggle Cursor */
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .cursor-pointer:hover i {
+            color: var(--primary) !important;
+        }
     </style>
 </head>
 
@@ -317,6 +327,89 @@
                                 </li>
                             @endif
                         @else
+                            <!-- Notification Dropdown -->
+                            <li class="nav-item dropdown me-3">
+                                <a id="notificationsDropdown" class="nav-link position-relative pt-1" href="#" role="button"
+                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="bi bi-bell" style="font-size: 1.25rem;"></i>
+                                    @if(Auth::user()->unreadNotifications->count() > 0)
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                            style="font-size: 0.6rem; padding: 0.25rem 0.4rem;">
+                                            {{ Auth::user()->unreadNotifications->count() }}
+                                        </span>
+                                    @endif
+                                </a>
+
+                                <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-0"
+                                    aria-labelledby="notificationsDropdown"
+                                    style="width: 320px; max-height: 400px; overflow-y: auto;">
+                                    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                                        <h6 class="fw-bold mb-0">Notifications</h6>
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if(Auth::user()->unreadNotifications->count() > 0)
+                                                <small class="text-muted" id="unreadCountText">{{ Auth::user()->unreadNotifications->count() }} new</small>
+                                                <a href="#" id="clearNotificationsBtn" class="text-decoration-none text-primary small fw-bold">Clear All</a>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="list-group list-group-flush">
+                                        @forelse(Auth::user()->unreadNotifications as $notification)
+                                            <a href="{{ route('notifications.read', $notification->id) }}"
+                                                class="list-group-item list-group-item-action p-3 border-bottom-0 border-top">
+                                                <div class="d-flex align-items-start">
+                                                    <div class="me-3 mt-1">
+                                                        @php
+                                                            $type = $notification->data['type'];
+                                                            $iconClass = 'bi-bell';
+                                                            $bgClass = 'bg-secondary';
+                                                            $textClass = 'text-secondary';
+
+                                                            if (str_contains($type, 'response') || str_contains($type, 'answer')) {
+                                                                $iconClass = 'bi-chat-text';
+                                                                $bgClass = 'bg-info';
+                                                                $textClass = 'text-info';
+                                                            } elseif (str_contains($type, 'created') || str_contains($type, 'approved') || str_contains($type, 'open')) {
+                                                                $iconClass = 'bi-check-circle';
+                                                                $bgClass = 'bg-success';
+                                                                $textClass = 'text-success';
+                                                            } elseif (str_contains($type, 'updated') || str_contains($type, 'pending')) {
+                                                                $iconClass = 'bi-pencil';
+                                                                $bgClass = 'bg-primary';
+                                                                $textClass = 'text-primary';
+                                                            } elseif (str_contains($type, 'deleted') || str_contains($type, 'rejected') || str_contains($type, 'closed')) {
+                                                                $iconClass = 'bi-x-circle';
+                                                                $bgClass = 'bg-danger';
+                                                                $textClass = 'text-danger';
+                                                            }
+                                                        @endphp
+                                                        <div class="{{ $bgClass }} bg-opacity-10 {{ $textClass }} rounded-circle d-flex align-items-center justify-content-center"
+                                                            style="width: 32px; height: 32px;">
+                                                            <i class="bi {{ $iconClass }}"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <p class="mb-1 small text-dark">{{ $notification->data['message'] }}</p>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <small class="text-muted" style="font-size: 0.75rem;">
+                                                                {{ $notification->data['user_name'] ?? 'System' }}
+                                                            </small>
+                                                            <small class="text-muted" style="font-size: 0.75rem;">
+                                                                {{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        @empty
+                                            <div class="p-4 text-center text-muted">
+                                                <i class="bi bi-bell-slash mb-2" style="font-size: 1.5rem;"></i>
+                                                <p class="small mb-0">No new notifications</p>
+                                            </div>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            </li>
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center gap-2"
                                     href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
@@ -412,7 +505,7 @@
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4 p-md-5 bg-surface">
-                    <form method="POST" action="{{ route('login') }}">
+                    <form method="POST" action="{{ route('login') }}" id="loginForm">
                         @csrf
                         <div class="mb-4">
                             <label for="modal-email"
@@ -447,8 +540,11 @@
                                 <span class="input-group-text bg-light border-end-0"><i
                                         class="bi bi-lock text-muted"></i></span>
                                 <input id="modal-password" type="password"
-                                    class="form-control border-start-0 ps-0 @error('password') is-invalid @enderror"
+                                    class="form-control border-0 ps-0 @error('password') is-invalid @enderror"
                                     name="password" required autocomplete="current-password" placeholder="••••••••">
+                                <span class="input-group-text bg-light border-start-0 cursor-pointer" id="toggleModalPassword">
+                                    <i class="bi bi-eye text-muted" id="modalPasswordIcon"></i>
+                                </span>
                             </div>
                             @error('password')
                                 <span class="invalid-feedback d-block" role="alert">
@@ -488,6 +584,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Theme Toggle Logic
             const themeToggle = document.getElementById('themeToggle');
             const themeIcon = document.getElementById('themeIcon');
             const body = document.body;
@@ -501,21 +598,201 @@
                 themeIcon.classList.add('bi-sun-fill');
             }
 
-            themeToggle.addEventListener('click', function () {
-                if (body.classList.contains('light-mode')) {
-                    body.classList.remove('light-mode');
-                    body.classList.add('dark-mode');
-                    themeIcon.classList.remove('bi-moon-stars-fill');
-                    themeIcon.classList.add('bi-sun-fill');
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    body.classList.remove('dark-mode');
-                    body.classList.add('light-mode');
-                    themeIcon.classList.remove('bi-sun-fill');
-                    themeIcon.classList.add('bi-moon-stars-fill');
-                    localStorage.setItem('theme', 'light');
-                }
-            });
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function () {
+                    if (body.classList.contains('light-mode')) {
+                        body.classList.remove('light-mode');
+                        body.classList.add('dark-mode');
+                        themeIcon.classList.remove('bi-moon-stars-fill');
+                        themeIcon.classList.add('bi-sun-fill');
+                        localStorage.setItem('theme', 'dark');
+                    } else {
+                        body.classList.remove('dark-mode');
+                        body.classList.add('light-mode');
+                        themeIcon.classList.remove('bi-sun-fill');
+                        themeIcon.classList.add('bi-moon-stars-fill');
+                        localStorage.setItem('theme', 'light');
+                    }
+                });
+            }
+
+            // AJAX Login Logic
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    const originalButtonText = submitButton.innerHTML;
+
+                    // Disable submit button and show loading state
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Logging in...';
+
+                    // Clear previous errors
+                    document.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+                    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        // Check if response is ok
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw data;
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // Success - redirect to the specified page
+                            if (data.redirect) {
+                                window.location.href = data.redirect;
+                            } else {
+                                window.location.reload();
+                            }
+                        } else if (data.errors) {
+                            // Handle validation errors
+                            Object.keys(data.errors).forEach(field => {
+                                const input = document.getElementById('modal-' + field);
+                                if (input) {
+                                    input.classList.add('is-invalid');
+                                    const errorDiv = document.createElement('span');
+                                    errorDiv.className = 'invalid-feedback d-block';
+                                    errorDiv.innerHTML = '<strong>' + data.errors[field][0] + '</strong>';
+                                    input.closest('.mb-4').appendChild(errorDiv);
+                                }
+                            });
+                            
+                            // Re-enable submit button
+                            submitButton.disabled = false;
+                            submitButton.innerHTML = originalButtonText;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Login Error:', error);
+                        
+                        // Handle validation errors from catch block
+                        if (error.errors) {
+                            Object.keys(error.errors).forEach(field => {
+                                const input = document.getElementById('modal-' + field);
+                                if (input) {
+                                    input.classList.add('is-invalid');
+                                    const errorDiv = document.createElement('span');
+                                    errorDiv.className = 'invalid-feedback d-block';
+                                    errorDiv.innerHTML = '<strong>' + error.errors[field][0] + '</strong>';
+                                    input.closest('.mb-4').appendChild(errorDiv);
+                                }
+                            });
+                        } else if (error.message) {
+                            // Show general error message
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'alert alert-danger';
+                            errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>' + error.message;
+                            loginForm.insertBefore(errorDiv, loginForm.firstChild);
+                        }
+                        
+                        // Re-enable submit button
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalButtonText;
+                    });
+                });
+            }
+
+            // Password Visibility Toggle for Modal
+            const toggleModalPassword = document.getElementById('toggleModalPassword');
+            const modalPasswordInput = document.getElementById('modal-password');
+            const modalPasswordIcon = document.getElementById('modalPasswordIcon');
+
+            if (toggleModalPassword && modalPasswordInput && modalPasswordIcon) {
+                toggleModalPassword.addEventListener('click', function() {
+                    // Toggle password visibility
+                    if (modalPasswordInput.type === 'password') {
+                        modalPasswordInput.type = 'text';
+                        modalPasswordIcon.classList.remove('bi-eye');
+                        modalPasswordIcon.classList.add('bi-eye-slash');
+                    } else {
+                        modalPasswordInput.type = 'password';
+                        modalPasswordIcon.classList.remove('bi-eye-slash');
+                        modalPasswordIcon.classList.add('bi-eye');
+                    }
+                });
+            }
+
+            // Notification Icon Click - Mark all as read
+            const notificationIcon = document.getElementById('notificationsDropdown');
+            if (notificationIcon) {
+                notificationIcon.addEventListener('click', function(e) {
+                    const badge = this.querySelector('.badge');
+                    if (badge && badge.textContent.trim() !== '0') {
+                        // Mark all as read via AJAX
+                        fetch("{{ route('notifications.readAll') }}", {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Remove badge
+                                badge.remove();
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                    }
+                });
+            }
+
+            // Clear All Notifications Button
+            const clearBtn = document.getElementById('clearNotificationsBtn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    fetch("{{ route('notifications.readAll') }}", {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Remove badge from icon
+                            const badge = document.querySelector('#notificationsDropdown .badge');
+                            if (badge) badge.remove();
+                            
+                            // Hide count text and clear button
+                            const countText = document.getElementById('unreadCountText');
+                            if (countText) countText.style.display = 'none';
+                            clearBtn.style.display = 'none';
+                            
+                            // Update notification list to show empty state
+                            const listContainer = document.querySelector('.dropdown-menu[aria-labelledby="notificationsDropdown"] .list-group');
+                            if (listContainer) {
+                                listContainer.innerHTML = `
+                                    <div class="p-4 text-center text-muted">
+                                        <i class="bi bi-bell-slash mb-2" style="font-size: 1.5rem;"></i>
+                                        <p class="small mb-0">No new notifications</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            }
         });
     </script>
     @stack('scripts')

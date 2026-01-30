@@ -113,5 +113,33 @@
             resize: vertical;
             min-height: 150px;
         }
+
+        /* TinyMCE Dark Mode Fixes if needed, or variable usage */
+        .tox-tinymce {
+            border-radius: 0.5rem !important;
+            border: 1px solid var(--border) !important;
+        }
     </style>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                tinymce.init({
+                    selector: '#content',
+                    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+                    skin: document.body.classList.contains('dark-mode') ? 'oxide-dark' : 'oxide',
+                    content_css: document.body.classList.contains('dark-mode') ? 'dark' : 'default',
+                    height: 400,
+                    menubar: false,
+                    statusbar: false,
+                    setup: function (editor) {
+                        editor.on('change', function () {
+                            editor.save(); // Syncs content to textarea
+                        });
+                    }
+                });
+            });
+        </script>
+    @endpush
 @endsection

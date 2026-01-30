@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Reponse;
 use App\Models\Question;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\AdminActivityNotification;
+use App\Notifications\UserNotification;
 
 class ReponseController extends Controller
 {
@@ -25,6 +29,42 @@ class ReponseController extends Controller
             'question_id' => $question->id,
             'user_id' => Auth::id(),
         ]);
+
+        // Notify Admins (send synchronously, no delay)
+        $admins = User::where('role', 'admin')->where('id', '!=', Auth::id())->get();
+        foreach ($admins as $admin) {
+            try {
+                $admin->notify(new AdminActivityNotification([
+                    'type' => 'response_created',
+                    'message' => 'New response on: ' . $question->title,
+                    'user_id' => Auth::id(),
+                    'user_name' => Auth::user()->name,
+                    'link' => route('questions.show', $question) . '#reponse-' . $reponse->id
+                ]));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Admin notification failed', [
+                    'admin_id' => $admin->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Notify Question Owner (send synchronously, no delay)
+        if ($question->user_id !== Auth::id()) {
+            try {
+                $question->user->notify(new UserNotification([
+                    'type' => 'new_answer',
+                    'message' => Auth::user()->name . ' answered your question "' . $question->title . '"',
+                    'link' => route('questions.show', $question) . '#reponse-' . $reponse->id,
+                    'user_name' => Auth::user()->name
+                ]));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('User notification failed', [
+                    'user_id' => $question->user_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         if ($request->wantsJson()) {
             $reponse->load('user', 'votes'); // Eager load for the view
@@ -84,7 +124,7 @@ class ReponseController extends Controller
             'reponse_id' => $reponse->id
         ]);
 
-        if ($reponse->user_id != Auth::id()) {
+        if ($reponse->user_id != Auth::id() && Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action. You are user ' . Auth::id() . ' but this response belongs to user ' . $reponse->user_id);
         }
 

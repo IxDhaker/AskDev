@@ -40,6 +40,10 @@ Route::get('/users/{user}/archive/reponses', [UserController::class, 'archiveRep
 Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.delete');
 Route::post('/users/check-password', [UserController::class, 'checkPassword'])->name('users.check-password');
 
+// Notification routes
+Route::get('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'readAll'])->name('notifications.readAll');
+Route::get('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'read'])->name('notifications.read');
+
 // Vote routes
 Route::post('/questions/{question}/vote', [VoteController::class, 'vote'])->name('votes.vote');
 Route::delete('/questions/{question}/vote', [VoteController::class, 'removeVote'])->name('votes.remove');

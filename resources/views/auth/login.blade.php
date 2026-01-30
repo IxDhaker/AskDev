@@ -48,8 +48,12 @@
                                     <span class="input-group-text bg-light border-end-0"><i
                                             class="bi bi-lock text-muted"></i></span>
                                     <input id="password" type="password"
-                                        class="form-control border-start-0 ps-0 @error('password') is-invalid @enderror"
+                                        class="form-control border-0 ps-0 @error('password') is-invalid @enderror"
                                         name="password" required autocomplete="current-password" placeholder="••••••••">
+                                    <span class="input-group-text bg-light border-start-0 cursor-pointer"
+                                        id="togglePassword">
+                                        <i class="bi bi-eye text-muted" id="passwordIcon"></i>
+                                    </span>
                                 </div>
                                 @error('password')
                                     <span class="invalid-feedback d-block" role="alert">
@@ -129,5 +133,38 @@
         body.dark-mode .form-control::placeholder {
             color: #64748b;
         }
+
+        /* Password Toggle Cursor */
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .cursor-pointer:hover i {
+            color: var(--primary) !important;
+        }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Password Visibility Toggle
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+            const passwordIcon = document.getElementById('passwordIcon');
+
+            if (togglePassword && passwordInput && passwordIcon) {
+                togglePassword.addEventListener('click', function () {
+                    // Toggle password visibility
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        passwordIcon.classList.remove('bi-eye');
+                        passwordIcon.classList.add('bi-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        passwordIcon.classList.remove('bi-eye-slash');
+                        passwordIcon.classList.add('bi-eye');
+                    }
+                });
+            }
+        });
+    </script>
 @endsection

@@ -8,12 +8,20 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $questions = Question::with(['user', 'reponses'])
-            ->where('status', 'open')
-            ->latest()
-            ->paginate(15);
+        $query = Question::with(['user', 'reponses'])
+            ->where('status', 'open');
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        $questions = $query->latest()->paginate(15);
 
         $stats = [
             'total_questions' => Question::count(),

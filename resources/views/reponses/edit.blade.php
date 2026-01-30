@@ -52,4 +52,26 @@
             </div>
         </div>
     </div>
+
+        @push('scripts')
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    tinymce.init({
+                        selector: '#content',
+                        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+                        skin: document.body.classList.contains('dark-mode') ? 'oxide-dark' : 'oxide',
+                        content_css: document.body.classList.contains('dark-mode') ? 'dark' : 'default',
+                        height: 300,
+                        menubar: false,
+                        statusbar: false,
+                        setup: function(editor) {
+                            editor.on('change', function() {
+                                editor.save();
+                            });
+                        }
+                    });
+                });
+            </script>
+        @endpush
 @endsection

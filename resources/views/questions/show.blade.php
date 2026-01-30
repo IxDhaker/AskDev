@@ -122,7 +122,7 @@
             color: var(--text-main);
             line-height: 1.8;
             font-size: 1.05rem;
-            white-space: pre-wrap;
+            /* white-space: pre-wrap; Removed for HTML content */
             word-wrap: break-word;
         }
 
@@ -207,7 +207,7 @@
             flex: 1;
             color: var(--text-main);
             line-height: 1.8;
-            white-space: pre-wrap;
+            /* white-space: pre-wrap; Removed for HTML content */
             word-wrap: break-word;
         }
 
@@ -319,7 +319,7 @@
 
         <!-- Question Content -->
         <div class="question-content-section">
-            <div class="question-content">{{ $question->content }}</div>
+            <div class="question-content">{!! $question->content !!}</div>
 
             <div class="author-card">
                 <div class="author-avatar">
@@ -375,8 +375,8 @@
                     <form action="{{ route('reponses.store', $question) }}" method="POST" id="reponse-form">
                         @csrf
                         <div class="mb-3">
-                            <textarea name="content" class="form-control" rows="6" placeholder="Write your answer here..."
-                                required></textarea>
+                            <textarea name="content" id="content" class="form-control" rows="6"
+                                placeholder="Write your answer here..." required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-send me-2"></i>Post Your Answer
@@ -533,6 +533,7 @@
                 if (reponseForm) {
                     reponseForm.addEventListener('submit', function (e) {
                         e.preventDefault();
+                        if (window.tinymce) tinymce.triggerSave();
 
                         const form = e.target;
                         const formData = new FormData(form);
@@ -638,15 +639,33 @@
             // Add shake keyframes to existing style
             const styleSheet = document.createElement("style");
             styleSheet.innerText = `
-                    @keyframes shake {
-                        0% { transform: translateX(0); }
-                        25% { transform: translateX(-5px); }
-                        50% { transform: translateX(5px); }
-                        75% { transform: translateX(-5px); }
-                        100% { transform: translateX(0); }
-                    }
-                `;
+                                                                    @keyframes shake {
+                                                                        0% { transform: translateX(0); }
+                                                                        25% { transform: translateX(-5px); }
+                                                                        50% { transform: translateX(5px); }
+                                                                        75% { transform: translateX(-5px); }
+                                                                        100% { transform: translateX(0); }
+                                                                    }
+                                                                `;
             document.head.appendChild(styleSheet);
+
+            document.addEventListener('DOMContentLoaded', function () {
+                tinymce.init({
+                    selector: '#content',
+                    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+                    skin: document.body.classList.contains('dark-mode') ? 'oxide-dark' : 'oxide',
+                    content_css: document.body.classList.contains('dark-mode') ? 'dark' : 'default',
+                    height: 250,
+                    menubar: false,
+                    statusbar: false,
+                    setup: function (editor) {
+                        editor.on('change', function () {
+                            editor.save();
+                        });
+                    }
+                });
+            });
         </script>
     @endpush
 @endsection

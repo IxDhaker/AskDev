@@ -59,7 +59,7 @@
     </div>
 
     <div class="answer-content pt-3">
-        {{ $reponse->content }}
+        {!! $reponse->content !!}
         <div class="author-card">
             <div class="author-avatar">
                 {{ substr($reponse->user->name, 0, 1) }}

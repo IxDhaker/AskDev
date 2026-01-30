@@ -8,6 +8,7 @@ use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\UserNotification;
 
 class AdminController extends Controller
 {
@@ -127,6 +128,19 @@ class AdminController extends Controller
         ]);
 
         $question->update(['status' => $validated['status']]);
+
+        // Notify User
+        $message = match ($validated['status']) {
+            'open' => 'Your question "' . $question->title . '" has been approved.',
+            'closed' => 'Your question "' . $question->title . '" has been closed.',
+            default => 'Status of your question "' . $question->title . '" has been updated to ' . $validated['status'] . '.'
+        };
+
+        $question->user->notify(new UserNotification([
+            'type' => 'question_status_' . $validated['status'],
+            'message' => $message,
+            'link' => route('questions.show', $question)
+        ]));
 
         return redirect()->back()
             ->with('success', 'Question status updated successfully!');

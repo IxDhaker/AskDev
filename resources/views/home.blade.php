@@ -292,16 +292,7 @@
             <h1 class="hero-title">Welcome to AskDev</h1>
             <p class="hero-subtitle">The premier platform for developers to share knowledge and grow together</p>
 
-            <!-- Developers Card Inside Hero -->
-            <div class="mb-4">
-                <div class="developers-card">
-                    <i class="bi bi-people-fill developer-icon"></i>
-                    <div>
-                        <div class="stats-number">{{ number_format($stats['total_users']) }}</div>
-                        <div class="stats-label">Developers</div>
-                    </div>
-                </div>
-            </div>
+
 
             <div class="d-flex gap-3 justify-content-center flex-wrap">
                 @guest
@@ -334,63 +325,169 @@
             @endauth
         </div>
 
-        @if($questions->count() > 0)
-            @foreach($questions as $question)
-                <div class="question-card position-relative">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <a href="{{ route('questions.show', $question) }}" class="text-decoration-none text-reset flex-grow-1">
-                            <h3 class="question-title mb-0">{{ $question->title }}</h3>
-                        </a>
-                        @if(Auth::check() && Auth::user()->role === 'admin')
-                            <form action="{{ route('questions.destroy', $question) }}" method="POST" class="d-inline z-2"
-                                onsubmit="return confirm('Delete this question permanently?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger border-0 p-1" title="Delete Question">
+        <!-- Search Bar -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <form action="{{ route('home') }}" method="GET" class="position-relative">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" name="search"
+                        class="form-control form-control-lg ps-5 rounded-pill border-0 shadow-sm"
+                        placeholder="Search questions by title or content..." value="{{ request('search') }}"
+                        style="background-color: var(--surface);">
+                </form>
+            </div>
+        </div>
+
+        <div id="questions-container" style="transition: opacity 0.3s ease;">
+            @if($questions->count() > 0)
+                @foreach($questions as $question)
+                    <div class="question-card position-relative">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <a href="{{ route('questions.show', $question) }}" class="text-decoration-none text-reset flex-grow-1">
+                                <h3 class="question-title mb-0">{{ $question->title }}</h3>
+                            </a>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1 z-2"
+                                    onclick="event.preventDefault(); window.confirmDeleteQuestion('{{ route('questions.destroy', $question) }}')"
+                                    title="Delete Question">
                                     <i class="bi bi-trash"></i>
                                 </button>
-                            </form>
-                        @endif
+                            @endif
+                        </div>
+
+                        <p class="question-content">{{ Str::limit(strip_tags($question->content), 150) }}</p>
+
+                        <div class="question-meta">
+                            <div class="meta-item">
+                                <i class="bi bi-person-circle"></i>
+                                <span>{{ $question->user ? $question->user->name : 'Deleted User' }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="bi bi-chat-dots"></i>
+                                <span>{{ $question->reponses->count() }} answers</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="bi bi-eye"></i>
+                                <span>{{ $question->views }} views</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="bi bi-clock"></i>
+                                <span>{{ $question->created_at->diffForHumans() }}</span>
+                            </div>
+                        </div>
                     </div>
+                @endforeach
 
-                    <p class="question-content">{{ Str::limit($question->content, 150) }}</p>
+                <!-- Pagination -->
+                <div class="d-flex justify-content-center mt-4">
+                    {{ $questions->links() }}
+                </div>
+            @else
+                <div class="text-center py-5">
+                    <i class="bi bi-search" style="font-size: 4rem; color: var(--text-muted);"></i>
+                    <h3 class="mt-3 text-muted">
+                        @if(request('search'))
+                            No results found for "{{ request('search') }}"
+                        @else
+                            No questions yet
+                        @endif
+                    </h3>
+                    <p class="text-muted">
+                        @if(request('search'))
+                            Try adjusting your search terms or ask a new question.
+                        @else
+                            Be the first to ask a question!
+                        @endif
+                    </p>
+                    @auth
+                        <a href="{{ route('questions.create') }}" class="btn btn-primary mt-3">
+                            <i class="bi bi-plus-circle me-2"></i>Ask the First Question
+                        </a>
+                    @endauth
+                </div>
+            @endif
+        </div>
+    </div>
 
-                    <div class="question-meta">
-                        <div class="meta-item">
-                            <i class="bi bi-person-circle"></i>
-                            <span>{{ $question->user ? $question->user->name : 'Deleted User' }}</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="bi bi-chat-dots"></i>
-                            <span>{{ $question->reponses->count() }} answers</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="bi bi-eye"></i>
-                            <span>{{ $question->views }} views</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="bi bi-clock"></i>
-                            <span>{{ $question->created_at->diffForHumans() }}</span>
-                        </div>
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteQuestionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3 text-danger">
+                        <i class="bi bi-exclamation-circle" style="font-size: 3rem;"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Delete this Question?</h4>
+                    <p class="text-muted mb-4">Are you sure you want to delete this question? This action cannot be undone.
+                    </p>
+
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-light rounded-pill px-4"
+                            data-bs-dismiss="modal">Cancel</button>
+                        <form id="deleteQuestionForm" action="" method="POST">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger rounded-pill px-4">Delete</button>
+                        </form>
                     </div>
                 </div>
-            @endforeach
-
-            <!-- Pagination -->
-            <div class="d-flex justify-content-center mt-4">
-                {{ $questions->links() }}
             </div>
-        @else
-            <div class="text-center py-5">
-                <i class="bi bi-inbox" style="font-size: 4rem; color: var(--text-muted);"></i>
-                <h3 class="mt-3 text-muted">No questions yet</h3>
-                <p class="text-muted">Be the first to ask a question!</p>
-                @auth
-                    <a href="{{ route('questions.create') }}" class="btn btn-primary mt-3">
-                        <i class="bi bi-plus-circle me-2"></i>Ask the First Question
-                    </a>
-                @endauth
-            </div>
-        @endif
+        </div>
     </div>
+
+    @push('scripts')
+        <script>
+            window.confirmDeleteQuestion = function (url) {
+                const form = document.getElementById('deleteQuestionForm');
+                if (form) {
+                    form.action = url;
+                    const modal = new bootstrap.Modal(document.getElementById('deleteQuestionModal'));
+                    modal.show();
+                }
+            };
+
+            document.addEventListener('DOMContentLoaded', function () {
+                let searchTimeout;
+                const searchInput = document.querySelector('input[name="search"]');
+                const container = document.getElementById('questions-container');
+
+                if (searchInput && container) {
+                    searchInput.addEventListener('input', function () {
+                        clearTimeout(searchTimeout);
+                        const query = this.value;
+
+                        searchTimeout = setTimeout(() => {
+                            // Show loading state
+                            container.style.opacity = '0.5';
+
+                            const url = new URL(window.location.href);
+                            url.searchParams.set('search', query);
+                            url.searchParams.delete('page');
+
+                            fetch(url, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                                .then(response => response.text())
+                                .then(html => {
+                                    const parser = new DOMParser();
+                                    const doc = parser.parseFromString(html, 'text/html');
+                                    const newContent = doc.getElementById('questions-container').innerHTML;
+                                    container.innerHTML = newContent;
+                                    container.style.opacity = '1';
+
+                                    // Update URL without refresh
+                                    window.history.pushState({}, '', url);
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    container.style.opacity = '1';
+                                });
+                        }, 500); // 500ms delay
+                    });
+                }
+            });
+        </script>
+    @endpush
 @endsection
