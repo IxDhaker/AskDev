@@ -42,7 +42,7 @@
                                 </div>
                             </div>
                             <p class="text-muted small mb-2 text-truncate line-clamp-2">
-                                {{ Str::limit($question->content, 150) }}
+                                {{ Str::limit(strip_tags($question->content), 150) }}
                             </p>
                             <div class="d-flex align-items-center gap-3 text-muted small" style="font-size: 0.8rem;">
                                 <span><i class="bi bi-clock me-1"></i> {{ $question->created_at->format('M d, Y') }}</span>
